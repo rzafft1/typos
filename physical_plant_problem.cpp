@@ -51,19 +51,15 @@ void break_room(int tid) {
         // Tech is done drinking coffee
         sem_wait(&coffees[tid]);
 
+        // Wait for a job
+        sem_wait(&notify);
+
         multex.lock();
         tech_queue.push(tid);
         cout << "<Tech> " << tech_queue.size() << " techs are now available. " << "Techs in the queue are " << queueString(tech_queue) << endl;
         if (tech_queue.size() == 3){
+            sem_post(&ready);
             cout << "techs " << queueString(tech_queue) << " are working on the job for client " << endl;
-            available_techs -= 3;
-            while (tech_queue.empty() == false){
-                int working_tid = tech_queue.front();
-                if (working_tid == tid){
-                    cout << "tech " << tid << " done working on job for client";
-                    tech_queue.pop();
-                }
-            }
         }
         multex.unlock();
         //sem_wait(&notify);
@@ -75,18 +71,10 @@ void break_room(int tid) {
 void helpdesk() {
     while (true) {
         sem_wait(&call);  // Wait for a client call
-        multex.lock();
-        
-        if (!client_queue.empty()) {
-            active_client_job = client_queue.front();  
-            client_queue.pop();  
-            //sem_post(&notify);
-            // Wait for 3 techs to be ready
-            sem_wait(&ready);
-            printf("<Help Desk> 3 techs are ready for client %d's job.\n", active_client_job);
-            
-        }
-        multex.unlock();
+
+        sem_post(&notify); // Notify techs
+
+        sem_wait(&ready); // wait until 3 workers are ready
     }
 }
 
@@ -115,12 +103,12 @@ int main() {
     sem_init(&job_complete[1], 0, 0);
 
     // // Start helpdesk thread
-    // receptionist = thread(helpdesk);
+    receptionist = thread(helpdesk);
     
-    // // Start client threads
-    // for (int i = 0; i < 2; i++) {
-    //     clients[i] = thread(do_something, i);
-    // }
+    // Start client threads
+    for (int i = 0; i < 2; i++) {
+        clients[i] = thread(do_something, i);
+    }
     
     // Start tech threads
     for (int i = 0; i < 5; i++) {
@@ -128,9 +116,9 @@ int main() {
     }
 
     // Join threads
-    // clients[0].join();
-    // clients[1].join();
-    // receptionist.join();
+    clients[0].join();
+    clients[1].join();
+    receptionist.join();
     for (int i = 0; i < 5; i++) {
         techs[i].join();
     }
