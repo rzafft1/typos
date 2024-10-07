@@ -114,6 +114,12 @@ int main(){
 
     clients[0].join();
     clients[1].join();
+    techs[0].join();
+    techs[1].join();
+    techs[2].join();
+    techs[3].join();
+    techs[4].join();
+
 
     return 0;
 }
