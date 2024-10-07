@@ -43,7 +43,7 @@ sem_t coffees[5];
 int available_techs = 0;
 sem_t call; // 0 (no call), 1 (call from client to helpdesk)
 sem_t notify; // 0 (no notify), 1 (notify techs that job is available)
-sem_t job_complete[0];
+sem_t job_complete[2];
 thread techs[5];
 thread clients[2];  
 thread receptionist;
