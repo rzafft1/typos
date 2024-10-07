@@ -28,6 +28,7 @@ void call_helpdesk(int client_tid) {
     sem_post(&call);  // Notify the helpdesk about the new client
     multex.unlock();
 }
+
 string queueString(queue<int> q) {
     string output = "";
     while (!q.empty()) {
@@ -40,6 +41,7 @@ string queueString(queue<int> q) {
     }
     return output;
 }
+
 void break_room(int tid) {
     while (true) {
         printf("<Tech> Tech %d entered the breakroom.\n", tid);
@@ -57,11 +59,10 @@ void break_room(int tid) {
         multex.lock();
         tech_queue.push(tid);
         cout << "<Tech> " << tech_queue.size() << " techs are now available. " << "Techs in the queue are " << queueString(tech_queue) << endl;
-        if (tech_queue.size() == 3){
+        if (tech_queue.size() == 3) {
             sem_post(&ready);
         }
         multex.unlock();
-        //sem_wait(&notify);
         break;
     }
 }
@@ -76,8 +77,35 @@ void helpdesk() {
             sem_post(&notify);
         }
 
-        sem_wait(&ready); // wait until 3 workers are ready
-        cout << "<HelpDesk> " << queueString(tech_queue) << " are working on the job for client " << endl;
+        // Wait for 3 techs to be ready
+        sem_wait(&ready);
+
+        // Get the client from the client_queue
+        multex.lock();
+        int client_tid = client_queue.front();
+        client_queue.pop();
+        cout << "<HelpDesk> Client " << client_tid << "'s job is now being worked on by techs " << queueString(tech_queue) << endl;
+
+        // Remove 3 techs from the queue to work on the job
+        int techs_for_job[3];
+        for (int i = 0; i < 3; i++) {
+            techs_for_job[i] = tech_queue.front();
+            tech_queue.pop();
+        }
+        multex.unlock();
+
+        // Simulate the job being worked on by all 3 techs
+        int work_time = rand() % 31;
+        sleep(work_time);
+
+        // Notify the client that the job is done
+        printf("<HelpDesk> Client %d's problem is fixed by techs %d, %d, and %d!\n", client_tid, techs_for_job[0], techs_for_job[1], techs_for_job[2]);
+        sem_post(&job_complete[client_tid]);
+
+        // Release the techs back to drink coffee
+        for (int i = 0; i < 3; i++) {
+            sem_post(&coffees[techs_for_job[i]]);
+        }
     }
 }
 
@@ -105,7 +133,7 @@ int main() {
     sem_init(&job_complete[0], 0, 0);
     sem_init(&job_complete[1], 0, 0);
 
-    // // Start helpdesk thread
+    // Start helpdesk thread
     receptionist = thread(helpdesk);
     
     // Start client threads
@@ -125,7 +153,6 @@ int main() {
     for (int i = 0; i < 5; i++) {
         techs[i].join();
     }
-
 }
 
 /*
