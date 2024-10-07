@@ -41,7 +41,8 @@ using namespace std;
 mutex multex;  
 sem_t coffees[5];  
 int available_techs = 0;
-sem_t call; // 1 (no call), 0 (call from helpdesk)
+sem_t call; // 0 (no call), 1 (call from client to helpdesk)
+sem_t notify; // 0 (no notify), 1 (notify techs that job is available)
 thread techs[5];
 thread clients[2];  
 thread receptionist;
@@ -56,6 +57,12 @@ void call_helpdesk(int client_tid){
     multex.unlock();
 }
 
+void notify_techs(){
+    multex.lock();
+    // set notify to 1, i.e. techs are notified of a job
+    sem_post(&notify);
+    multex.unlock();
+}
 
 void break_room(int tid){
     while (true){
@@ -66,6 +73,10 @@ void break_room(int tid){
         /* -- tech is done drinking coffee (set to 0) -- */
         sem_wait(&coffees[tid]);
         printf("<Tech> Tech %d finished their coffee.\n", tid);
+        /* -- tech is waitint for a job (wait for notify to be set to 1) -- */
+        sem_wait(&notify);
+        printf("<Tech> Tech %d got a call from helpdesk and is ready to work.\n", tid);
+
     }
 }
 
@@ -74,8 +85,11 @@ void break_room(int tid){
 */
 void helpdesk(){
     while (true){
-        sem_wait(&call); // wait for a client to call (i.e. wait for call to be set to 1 then set it to 0)
-        printf("<Help Desk> The help desk got a call from %d.\n", client_call_tid);
+        // wait for a call from a client (wait for call to be set to 1) and take the call (set call back to 0)
+        sem_wait(&call); 
+        printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
+        // tell techs that a job is available
+        notify_techs();
     }
 }
 
@@ -98,6 +112,8 @@ int main(){
 
     // set calls to 0, no clients have called
     sem_init(&call, 0, 0);
+    // set notify to 0, no need to notify techs of jobs
+    sem_init(&notify, 0, 0);
 
     receptionist = thread(helpdesk);
     for (int i = 0; i < 2; i++){
