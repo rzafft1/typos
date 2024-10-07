@@ -78,7 +78,6 @@ void break_room(int tid){
 void helpdesk(int tid){
     printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
     // call the techs (set to 0)
-    sem_wait(&call);
 }
 
 
