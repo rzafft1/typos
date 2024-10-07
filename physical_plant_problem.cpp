@@ -5,165 +5,139 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <mutex>
+#include <queue>  // For queue
 using namespace std;
 
-/* -- The Dining Savages Problem (DESCRIPTION) --
-* Client Process
-*   ++ 2 Threads (clients)
-*   -> clients sleep (they do something) for a random amount of time
-*   -> when random time expires (something breaks), the client calls the help desk 
-*   -> the client waits for physical plant techs to show up and fix the problem
-*   -> once problem is fixed, they go back to working for a random amount of time before the next problem 
-*
-* Help Desk Process
-*   ++ 1 Thread (receptionist)
-*   -> waits for calls from client
-*   -> tells physical plant to go fix problem when client calls
-*
-* Physical Plant Tech Process
-*   ++ 5 Threads (techs)
-*   ++ 5 Sephamores (1 for each tech, and its value is either 1 or 0 )
-*   -> each tech drinks their coffee for a random amount of time
-*   -> when techs finish their coffee, they wait for the help desk to tell them to help a client
-*   -> techs can only help a client when 3 techs are done drinking coffee and are available to help
-*   -> once 3 techs are available, the problem can be fixed
-*   -> once the problem is fixed, the 3 techs go back to drinking coffee for a random amount of time
-*/
-
-/* -- SETUP VARIABLES --
-* multex : our mutex lock for atomic actions 
-* coffees : an array of 5 semaphores. 1 semaphore for each tech (its value is either 1 (the techs coffee is full) or 0 (the techs coffee is empty)
-* techs : an array of 5 threads / "techs" for the physical plant tech process
-* clients : an array of 2 threads / "clients"
-* receptionist : a single threads for the receptionist that works at the help desk
-
-*/
 mutex multex;  
 sem_t coffees[5];  
 int available_techs = 0;
-sem_t call; // 0 (no call), 1 (call from client to helpdesk)
-sem_t notify; // 0 (no notify), 1 (notify techs that job is available)
-sem_t ready;
+sem_t notify;      // Notify techs that job is available
+sem_t ready;       // Used to ensure 3 techs are ready
 sem_t job_complete[2];
-sem_t techs_done;
+sem_t techs_done;  // Used to indicate techs are done
 thread techs[5];
 thread clients[2];  
 thread receptionist;
-int client_call_tid = -1;
-int active_client_job = -1;
+queue<int> client_queue;  // Queue to store client TIDs
+int active_client_job = -1;  // Tracks which client's job is active
 
-
-void call_helpdesk(int client_tid){
-    multex.lock();  
-    client_call_tid = client_tid;
-    // set call to '1', i.e. a client made a call
-    sem_post(&call); 
+void call_helpdesk(int client_tid) {
+    multex.lock();
+    client_queue.push(client_tid);  // Push client's tid into the queue
+    printf("<Client %d> Called the helpdesk and added to the queue.\n", client_tid);
+    sem_post(&notify);  // Notify the helpdesk about the new client
     multex.unlock();
 }
 
-void break_room(int tid){
-    while (true){
+void break_room(int tid) {
+    while (true) {
         printf("<Tech> Tech %d entered the breakroom.\n", tid);
-        /* -- each tech drinks their coffee for a random amount of time */
-        int drink_coffee_time = (int) rand() % 31;  
+        
+        // Each tech drinks coffee for a random amount of time
+        int drink_coffee_time = rand() % 31;
         sleep(drink_coffee_time);
-        /* -- tech is done drinking coffee (set to 0) -- */
+        
+        // Tech is done drinking coffee
         sem_wait(&coffees[tid]);
         printf("<Tech> Tech %d finished their coffee.\n", tid);
 
         multex.lock();
         available_techs++;
         printf("<Tech> %d techs are now available.\n", available_techs);
+        if (available_techs >= 3) {
+            sem_post(&ready);  // Signal that 3 techs are available
+        }
         multex.unlock();
 
-        /* -- tech is waitint for a job (wait for notify to be set to 1) -- */
+        // Wait for job notification
         sem_wait(&notify);
-        printf("<Tech> Tech %d got a call from helpdesk and is ready to work.\n", tid);
+        printf("<Tech> Tech %d got a call from helpdesk and is ready to work on client %d's issue.\n", tid, active_client_job);
 
         multex.lock();
-        if (available_techs == 3){
-            printf("<Tech> Tech %d is working\n", tid);
-            int work_time = (int) rand() % 31;  
+        if (available_techs == 3) {
+            printf("<Tech> Tech %d is working on the job for client %d.\n", tid, active_client_job);
+            int work_time = rand() % 31;
             sleep(work_time);
         }
         multex.unlock();
 
-        /* -- tech completes job, and goes back to drinking coffee*/
+        // Tech completes job and goes back to drinking coffee
         sem_post(&coffees[tid]);
 
-        // After completing the job, the tech is no longer "available" until they finish coffee again
+        // After completing the job, the tech is no longer available
         multex.lock();
         available_techs--;
         multex.unlock();
     }
 }
 
-
-/* -- RECEPTIONISTS 'help desk' FUNCITON --
-*/
-void helpdesk(){
-    while (true){
-        // wait for a call from a client (wait for call to be set to 1) and take the call (set call back to 0)
-        sem_wait(&call); 
-        printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
-        // set notify to 1, i.e. techs are notified of a job
-        sem_post(&notify);
- 
-
-        // set notify to 1, i.e. techs are notified of a job
-        // sem_post(&job_complete[client_call_tid]);    
-
+/* Helpdesk function */
+void helpdesk() {
+    while (true) {
+        sem_wait(&notify);  // Wait for a client call
+        multex.lock();
+        
+        if (!client_queue.empty()) {
+            active_client_job = client_queue.front();  // Get the client's tid
+            client_queue.pop();  // Remove from queue
+            printf("<Help Desk> The help desk got a call from client %d and assigned the job to techs.\n", active_client_job);
+            
+            // Wait for 3 techs to be ready
+            sem_wait(&ready);
+            printf("<Help Desk> 3 techs are ready for client %d's job.\n", active_client_job);
+            
+            // Notify techs to work on the current job
+            sem_post(&notify);  // Notify all waiting techs
+        }
+        multex.unlock();
     }
 }
 
-
-void do_something(int tid){
+void do_something(int tid) {
     while (true) {
-        int do_something_time = (int) rand() % 31;  
+        int do_something_time = rand() % 31;
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
-        call_helpdesk(tid);
-        sem_wait(&job_complete[tid]);
-        printf("<Client %d> my problem is fixed!\n", tid);
+        call_helpdesk(tid);  // Client calls the helpdesk
+        sem_wait(&job_complete[tid]);  // Wait for the job to be done
+        printf("<Client %d> My problem is fixed!\n", tid);
     }
 }
 
-int main(){
-
-    // fill up every techs coffee (set to 1)
-    for (int i = 0; i < 5; i++){
+int main() {
+    // Initialize semaphores for each tech's coffee
+    for (int i = 0; i < 5; i++) {
         sem_init(&coffees[i], 0, 1);
     }
-
-    // set calls to 0, no clients have called
-    sem_init(&call, 0, 0);
-    // set notify to 0, no need to notify techs of jobs
+    
+    // Initialize semaphores for job completion and readiness
     sem_init(&notify, 0, 0);
     sem_init(&ready, 0, 0);
     sem_init(&techs_done, 0, 0);
-    // job is not complete
     sem_init(&job_complete[0], 0, 0);
     sem_init(&job_complete[1], 0, 0);
 
+    // Start helpdesk thread
     receptionist = thread(helpdesk);
-    for (int i = 0; i < 2; i++){
+    
+    // Start client threads
+    for (int i = 0; i < 2; i++) {
         clients[i] = thread(do_something, i);
     }
-    // for (int i = 0; i < 5; i++){
-    //     techs[i] = thread(break_room, i);
-    // }
+    
+    // Start tech threads
+    for (int i = 0; i < 5; i++) {
+        techs[i] = thread(break_room, i);
+    }
 
+    // Join threads
     clients[0].join();
     clients[1].join();
     receptionist.join();
-    // techs[0].join();
-    // techs[1].join();
-    // techs[2].join();
-    // techs[3].join();
-    // techs[4].join();
+    for (int i = 0; i < 5; i++) {
+        techs[i].join();
+    }
 
-
-    return 0;
 }
 
 /*
