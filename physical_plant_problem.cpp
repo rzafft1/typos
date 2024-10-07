@@ -28,7 +28,18 @@ void call_helpdesk(int client_tid) {
     sem_post(&call);  // Notify the helpdesk about the new client
     multex.unlock();
 }
-
+string queueString(queue<int> q) {
+    string output = "";
+    while (!q.empty()) {
+        int x = q.front(); 
+        output += to_string(x);  
+        q.pop();  
+        if (!q.empty()) {
+            output += ", ";
+        }
+    }
+    return output;
+}
 void break_room(int tid) {
     while (true) {
         printf("<Tech> Tech %d entered the breakroom.\n", tid);
@@ -45,7 +56,7 @@ void break_room(int tid) {
         available_techs++;
         tech_queue.push(tid);
         multex.unlock();
-        printf("<Tech> %d techs are now available. Techs in the queue are %d \n", available_techs, tech_queue);
+        printf("<Tech> %d techs are now available. Techs in the queue are %d \n", available_techs, queueString(tech_queue));
 
         //sem_wait(&notify);
         break;
