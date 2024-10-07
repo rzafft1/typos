@@ -39,81 +39,105 @@ using namespace std;
 
 */
 mutex multex;  
-sem_t coffees[5];  
-int available_techs = 0;
-sem_t call; // 0 (no call), 1 (call from client to helpdesk)
-sem_t notify; // 0 (no notify), 1 (notify techs that job is available)
-sem_t job_complete[2];
+sem_t coffees[5];    // Semaphore for each tech drinking coffee
+sem_t notify;        // Semaphore to notify exactly three techs about the job
+sem_t call;          // Semaphore for client calls
+sem_t job_complete[2]; // Semaphore for signaling when a client's job is completed
+int client_call_tid = -1;  // Shared variable to store the client who made the call
+int available_techs = 0;   // Number of available techs
+mutex tech_count_lock;     // Mutex to protect available_techs counter
 thread techs[5];
 thread clients[2];  
 thread receptionist;
-int client_call_tid = -1;
 
-
-void call_helpdesk(int client_tid){
+/* -- CLIENT CALLS HELP DESK -- */
+void call_helpdesk(int client_tid) {
     multex.lock();  
     client_call_tid = client_tid;
-    // set call to '1', i.e. a client made a call
+    // Set call to '1', i.e., a client made a call
     sem_post(&call); 
     multex.unlock();
 }
 
-void break_room(int tid){
-    while (true){
+/* -- TECHS DRINK COFFEE AND WAIT FOR JOBS -- */
+void break_room(int tid) {
+    while (true) {
         printf("<Tech> Tech %d entered the breakroom.\n", tid);
-        /* -- each tech drinks their coffee for a random amount of time */
-        int drink_coffee_time = (int) rand() % 31;  
+
+        // Each tech drinks their coffee for a random amount of time
+        int drink_coffee_time = rand() % 31;
         sleep(drink_coffee_time);
-        /* -- tech is done drinking coffee (set to 0) -- */
+
+        // Tech finishes drinking coffee
         sem_wait(&coffees[tid]);
         printf("<Tech> Tech %d finished their coffee.\n", tid);
 
-        multex.lock();
+        // Increase the number of available techs
+        tech_count_lock.lock();
         available_techs++;
         printf("<Tech> %d techs are now available.\n", available_techs);
-        multex.unlock();
+        tech_count_lock.unlock();
 
-        /* -- tech is waitint for a job (wait for notify to be set to 1) -- */
+        // Wait for a job (once notified, this tech will work on it)
         sem_wait(&notify);
-        printf("<Tech> Tech %d got a call from helpdesk and is ready to work.\n", tid);
 
-        /* -- tech completes job, and goes back to drinking coffee*/
+        printf("<Tech> Tech %d got a call from helpdesk and is ready to work on client %d's issue.\n", tid, client_call_tid);
+
+        // Simulate job completion time
+        int job_time = rand() % 11;
+        sleep(job_time);
+        
+        printf("<Tech> Tech %d completed the job for client %d.\n", tid, client_call_tid);
+
+        // Tech completes job and goes back to drinking coffee
         sem_post(&coffees[tid]);
 
         // After completing the job, the tech is no longer "available" until they finish coffee again
-        multex.lock();
+        tech_count_lock.lock();
         available_techs--;
-        multex.unlock();
+        tech_count_lock.unlock();
+
+        // Only notify the client after all techs finish the job
+        if (available_techs == 0) {
+            sem_post(&job_complete[client_call_tid]); 
+        }
     }
 }
 
-
-/* -- RECEPTIONISTS 'help desk' FUNCITON --
-*/
-void helpdesk(){
-    while (true){
-        // wait for a call from a client (wait for call to be set to 1) and take the call (set call back to 0)
-        sem_wait(&call); 
-        printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
-        // set notify to 1, i.e. techs are notified of a job
-        sem_post(&notify);
-
-        while (available_techs < 3);
-        // set notify to 1, i.e. techs are notified of a job
-        sem_post(&job_complete[client_call_tid]);    
-
-    }
-}
-
-
-void do_something(int tid){
+/* -- RECEPTIONISTS 'HELP DESK' FUNCTION -- */
+void helpdesk() {
     while (true) {
-        int do_something_time = (int) rand() % 31;  
+        // Wait for a call from a client
+        sem_wait(&call); 
+
+        printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
+
+        // Wait until at least 3 techs are available
+        tech_count_lock.lock();
+        while (available_techs < 3) {
+            tech_count_lock.unlock();  // Unlock while waiting to prevent deadlock
+            sleep(1);  // Wait and check again after a brief delay
+            tech_count_lock.lock();
+        }
+        printf("<Help Desk> 3 techs are available, notifying them about the job.\n");
+        tech_count_lock.unlock();
+
+        // Notify exactly 3 techs that a job is ready
+        for (int i = 0; i < 3; i++) {
+            sem_post(&notify);  // Signal to exactly 3 techs
+        }
+    }
+}
+
+/* -- CLIENTS DO SOMETHING AND CALL HELP DESK -- */
+void do_something(int tid) {
+    while (true) {
+        int do_something_time = rand() % 31;  
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
         call_helpdesk(tid);
         sem_wait(&job_complete[tid]);
-        printf("<Client %d> my problem is fixed!\n", tid);
+        printf("<Client %d> My problem is fixed!\n", tid);
     }
 }
 
