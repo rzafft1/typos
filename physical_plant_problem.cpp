@@ -45,7 +45,8 @@ void break_room(int tid) {
         multex.unlock();
         printf("<Tech> %d techs are now available.\n", available_techs);
 
-        sem_wait(&notify);
+        //sem_wait(&notify);
+        break;
     }
 }
 
@@ -92,13 +93,13 @@ int main() {
     sem_init(&job_complete[0], 0, 0);
     sem_init(&job_complete[1], 0, 0);
 
-    // Start helpdesk thread
-    receptionist = thread(helpdesk);
+    // // Start helpdesk thread
+    // receptionist = thread(helpdesk);
     
-    // Start client threads
-    for (int i = 0; i < 2; i++) {
-        clients[i] = thread(do_something, i);
-    }
+    // // Start client threads
+    // for (int i = 0; i < 2; i++) {
+    //     clients[i] = thread(do_something, i);
+    // }
     
     // Start tech threads
     for (int i = 0; i < 5; i++) {
