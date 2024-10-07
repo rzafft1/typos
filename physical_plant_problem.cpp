@@ -41,6 +41,7 @@ using namespace std;
 mutex multex;  
 sem_t coffees[5];  
 int available_techs = 0;
+sem_t call; // 1 (no call), 0 (call from helpdesk)
 thread techs[5];
 thread clients[2];  
 thread receptionist;
@@ -56,28 +57,33 @@ void refill_coffee(){
 
 /* -- TECHS 'break room / drink coffee' FUNCITON --
 */
-// void break_room(int tid){
-//     /* -- each tech drinks their coffee for a random amount of time */
-//     int drink_coffee_time = (int) rand() % 31;  
-//     sleep(drink_coffee_time);
-//     /* -- tech is done drinking coffee (set to 0) -- */
-//     sem_wait(&coffees[tid]);
+void break_room(int tid){
+    while (true){
+        /* -- each tech drinks their coffee for a random amount of time */
+        int drink_coffee_time = (int) rand() % 31;  
+        sleep(drink_coffee_time);
+        /* -- tech is done drinking coffee (set to 0) -- */
+        sem_wait(&coffees[tid]);
+        printf("<Tech %d> I just finished my coffee...\n", tid);
 
-//     multex.lock();
-//     available_techs += 1;
-//     /* -- when 3 techs are available we will notify the help desk that we can fix their problem -- */
-//     if (available_techs == 3) {
-//         sem_post(&available_techs); 
-//         available_techs -= 3;
-//     }
-//     multex.unlock();
-// }
+        // multex.lock();
+        // available_techs += 1;
+        // /* -- when 3 techs are available we will notify the help desk that we can fix their problem -- */
+        // if (available_techs == 3) {
+        //     sem_post(&available_techs); 
+        //     available_techs -= 3;
+        // }
+        // multex.unlock();
+    }
+}
 
 
 /* -- RECEPTIONISTS 'help desk' FUNCITON --
 */
 void helpdesk(int tid){
     printf("<Help Desk> Client %d called, but we are waiting for techs\n", tid);
+    // call the techs (set to 0)
+    sem_wait(&call);
 }
 
 
@@ -99,7 +105,14 @@ void do_something(int tid){
 
 int main(){
 
-    /* -- Let the clients do stuff... (create the client threads) -- */
+    // fill up every techs coffee (set to 1)
+    for (int i = 0; i < 5; i++){
+        sem_init(&coffees[i], 0, 1);
+    }
+    
+    for (int i = 0; i < 5; i++){
+        techs[i] = thread(break_room, i);
+    }
     for (int i = 0; i < 2; i++){
         clients[i] = thread(do_something, i);
     }
