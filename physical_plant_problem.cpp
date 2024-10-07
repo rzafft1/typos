@@ -51,11 +51,11 @@ int client_call_tid = -1;
 
 
 void call_helpdesk(int client_tid){
-    multex.lock();  
+    // multex.lock();  
     client_call_tid = client_tid;
     // set call to '1', i.e. a client made a call
     sem_post(&call); 
-    multex.unlock();
+    // multex.unlock();
 }
 
 void break_room(int tid){
