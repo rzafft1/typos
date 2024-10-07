@@ -43,19 +43,22 @@ sem_t coffees[5];
 int available_techs = 0;
 sem_t call; // 0 (no call), 1 (call from client to helpdesk)
 sem_t notify; // 0 (no notify), 1 (notify techs that job is available)
+sem_t ready;
 sem_t job_complete[2];
+sem_t techs_done;
 thread techs[5];
 thread clients[2];  
 thread receptionist;
 int client_call_tid = -1;
+int active_client_job = -1;
 
 
 void call_helpdesk(int client_tid){
-    // multex.lock();  
+    multex.lock();  
     client_call_tid = client_tid;
     // set call to '1', i.e. a client made a call
     sem_post(&call); 
-    // multex.unlock();
+    multex.unlock();
 }
 
 void break_room(int tid){
@@ -77,6 +80,14 @@ void break_room(int tid){
         sem_wait(&notify);
         printf("<Tech> Tech %d got a call from helpdesk and is ready to work.\n", tid);
 
+        multex.lock();
+        if (available_techs == 3){
+            printf("<Tech> Tech %d is working\n", tid);
+            int work_time = (int) rand() % 31;  
+            sleep(work_time);
+        }
+        multex.unlock();
+
         /* -- tech completes job, and goes back to drinking coffee*/
         sem_post(&coffees[tid]);
 
@@ -96,7 +107,8 @@ void helpdesk(){
         sem_wait(&call); 
         printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
         // set notify to 1, i.e. techs are notified of a job
-        // sem_post(&notify);
+        sem_post(&notify);
+ 
 
         // set notify to 1, i.e. techs are notified of a job
         // sem_post(&job_complete[client_call_tid]);    
@@ -107,7 +119,7 @@ void helpdesk(){
 
 void do_something(int tid){
     while (true) {
-        int do_something_time = (int) rand() % 6;  
+        int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
         call_helpdesk(tid);
@@ -127,7 +139,8 @@ int main(){
     sem_init(&call, 0, 0);
     // set notify to 0, no need to notify techs of jobs
     sem_init(&notify, 0, 0);
-
+    sem_init(&ready, 0, 0);
+    sem_init(&techs_done, 0, 0);
     // job is not complete
     sem_init(&job_complete[0], 0, 0);
     sem_init(&job_complete[1], 0, 0);
