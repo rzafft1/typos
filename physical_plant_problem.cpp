@@ -66,6 +66,12 @@ void break_room(int tid){
         /* -- tech is done drinking coffee (set to 0) -- */
         sem_wait(&coffees[tid]);
         printf("<Tech> Tech %d finished their coffee.\n", tid);
+
+        multex.lock();
+        available_techs++;
+        printf("<Tech> %d techs are now available.\n", available_techs);
+        multex.unlock();
+
         /* -- tech is waitint for a job (wait for notify to be set to 1) -- */
         sem_wait(&notify);
         printf("<Tech> Tech %d got a call from helpdesk and is ready to work.\n", tid);
@@ -73,6 +79,10 @@ void break_room(int tid){
         /* -- tech completes job, and goes back to drinking coffee*/
         sem_post(&coffees[tid]);
 
+        // After completing the job, the tech is no longer "available" until they finish coffee again
+        multex.lock();
+        available_techs--;
+        multex.unlock();
     }
 }
 
@@ -86,7 +96,10 @@ void helpdesk(){
         printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
         // set notify to 1, i.e. techs are notified of a job
         sem_post(&notify);
-    }
+
+        while (available_techs < 3);
+        // set notify to 1, i.e. techs are notified of a job
+        sem_post(&notify);    }
 }
 
 
