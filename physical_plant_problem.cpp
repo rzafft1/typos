@@ -59,7 +59,6 @@ void break_room(int tid) {
         cout << "<Tech> " << tech_queue.size() << " techs are now available. " << "Techs in the queue are " << queueString(tech_queue) << endl;
         if (tech_queue.size() == 3){
             sem_post(&ready);
-            cout << "techs " << queueString(tech_queue) << " are working on the job for client " << endl;
         }
         multex.unlock();
         //sem_wait(&notify);
@@ -78,6 +77,7 @@ void helpdesk() {
         }
 
         sem_wait(&ready); // wait until 3 workers are ready
+        cout << "<HelpDesk> " << queueString(tech_queue) << " are working on the job for client " << endl;
     }
 }
 
