@@ -14,7 +14,7 @@ int available_techs = 0;
 sem_t notify;      // Notify techs that job is available
 sem_t ready;       // Used to ensure 3 techs are ready
 sem_t job_complete[2];
-sem_t techs_done;  // Used to indicate techs are done
+sem_t call;  // Used to indicate techs are done
 thread techs[5];
 thread clients[2];  
 thread receptionist;
@@ -25,7 +25,7 @@ void call_helpdesk(int client_tid) {
     multex.lock();
     client_queue.push(client_tid);  // Push client's tid into the queue
     printf("<Client %d> Called the helpdesk and added to the queue.\n", client_tid);
-    sem_post(&notify);  // Notify the helpdesk about the new client
+    sem_post(&call);  // Notify the helpdesk about the new client
     multex.unlock();
 }
 
@@ -53,14 +53,14 @@ void break_room(int tid) {
 /* Helpdesk function */
 void helpdesk() {
     while (true) {
-        //sem_wait(&notify);  // Wait for a client call
+        sem_wait(&call);  // Wait for a client call
         multex.lock();
         
         if (!client_queue.empty()) {
             active_client_job = client_queue.front();  
             client_queue.pop();  
             printf("<Help Desk> The help desk got a call from client %d and assigned the job to techs.\n", active_client_job);
-            sem_post(&notify);
+            //sem_post(&notify);
             // Wait for 3 techs to be ready
             sem_wait(&ready);
             printf("<Help Desk> 3 techs are ready for client %d's job.\n", active_client_job);
@@ -90,7 +90,7 @@ int main() {
     // Initialize semaphores for job completion and readiness
     sem_init(&notify, 0, 0);
     sem_init(&ready, 0, 0);
-    sem_init(&techs_done, 0, 0);
+    sem_init(&call, 0, 0);
     sem_init(&job_complete[0], 0, 0);
     sem_init(&job_complete[1], 0, 0);
 
