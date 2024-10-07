@@ -93,6 +93,7 @@ void do_something(int tid){
         printf("Client %d has a problem!\n", tid);
 
         receptionist = thread(helpdesk, tid);
+        receptionist.join();
     }
 }
 
@@ -102,6 +103,9 @@ int main(){
     for (int i = 0; i < 2; i++){
         clients[i] = thread(do_something, i);
     }
+
+    clients[0].join();
+    clients[1].join();
 
     return 0;
 }
