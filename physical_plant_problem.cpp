@@ -45,17 +45,18 @@ sem_t call; // 1 (no call), 0 (call from helpdesk)
 thread techs[5];
 thread clients[2];  
 thread receptionist;
+int client_call_tid = -1;
 
 
-void call_helpdesk(){
+void call_helpdesk(int client_tid){
     multex.lock();  
+    client_call_tid = client_tid;
+    // set call to '1', i.e. a client made a call
     sem_post(&call); 
     multex.unlock();
 }
 
 
-/* -- TECHS 'break room / drink coffee' FUNCITON --
-*/
 void break_room(int tid){
     while (true){
         printf("<Tech> Tech %d entered the breakroom.\n", tid);
@@ -65,13 +66,6 @@ void break_room(int tid){
         /* -- tech is done drinking coffee (set to 0) -- */
         sem_wait(&coffees[tid]);
         printf("<Tech> Tech %d finished their coffee.\n", tid);
-
-        // multex.lock();
-        // available_techs += 1;
-        // if (available_techs == 3){
-
-        // }
-        // multex.unlock();
     }
 }
 
@@ -80,19 +74,12 @@ void break_room(int tid){
 */
 void helpdesk(){
     while (true){
-        sem_wait(&call);  // wait for a client to call 
-        printf("<Help Desk> The help desk got a call.\n");
+        sem_wait(&call); // wait for a client to call (i.e. wait for call to be set to 1 then set it to 0)
+        printf("<Help Desk> The help desk got a call from %d.\n", client_call_tid);
     }
-    // printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
-    // call the techs (set to 0)
 }
 
 
-/* -- CLIENTS 'do something' FUNCITON --
-* (1) Get a random amount of time between 0 and 30 seconds that the client will "do something" for
-* (2) Thread/"Clients" Sleeps/"Does Something" for the random amount of time 
-* (3) Once time expires, "something breaks", and client calls help desk
-*/
 void do_something(int tid){
     while (true) {
         int do_something_time = (int) rand() % 31;  
