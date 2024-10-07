@@ -85,7 +85,7 @@ void do_something(int tid){
         int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
-        call_helpdesk();
+        call_helpdesk(tid);
     }
 }
 
