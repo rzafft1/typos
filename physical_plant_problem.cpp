@@ -78,16 +78,14 @@ void helpdesk() {
         multex.lock();
         
         if (!client_queue.empty()) {
-            active_client_job = client_queue.front();  // Get the client's tid
-            client_queue.pop();  // Remove from queue
+            active_client_job = client_queue.front();  
+            client_queue.pop();  
             printf("<Help Desk> The help desk got a call from client %d and assigned the job to techs.\n", active_client_job);
-            
+            sem_post(&notify);
             // Wait for 3 techs to be ready
             sem_wait(&ready);
             printf("<Help Desk> 3 techs are ready for client %d's job.\n", active_client_job);
             
-            // Notify techs to work on the current job
-            sem_post(&notify);  // Notify all waiting techs
         }
         multex.unlock();
     }
