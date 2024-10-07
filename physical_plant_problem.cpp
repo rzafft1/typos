@@ -19,6 +19,7 @@ thread techs[5];
 thread clients[2];  
 thread receptionist;
 queue<int> client_queue;  // Queue to store client TIDs
+queue<int> tech_queue;
 int active_client_job = -1;  // Tracks which client's job is active
 
 void call_helpdesk(int client_tid) {
@@ -42,8 +43,9 @@ void break_room(int tid) {
 
         multex.lock();
         available_techs++;
+        tech_queue.push(tid);
         multex.unlock();
-        printf("<Tech> %d techs are now available.\n", available_techs);
+        printf("<Tech> %d techs are now available. Techs in the queue are %d \n", available_techs, tech_queue);
 
         //sem_wait(&notify);
         break;
@@ -128,4 +130,6 @@ int main() {
 3. when the number of available techs reaches 3
 
 run with : g++ physical_plant_problem.cpp -pthread -std=c++11 -o ppp
+git add physical_plant_problem.cpp && git commit -m "Your commit message" && git push
+
  */
