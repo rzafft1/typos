@@ -45,29 +45,7 @@ void break_room(int tid) {
         available_techs++;
         multex.unlock();
         printf("<Tech> %d techs are now available.\n", available_techs);
-        if (available_techs >= 3) {
-            sem_post(&ready);  // Signal that 3 techs are available
-        }
 
-        // Wait for job notification
-        sem_wait(&notify);
-        printf("<Tech> Tech %d got a call from helpdesk and is ready to work on client %d's issue.\n", tid, active_client_job);
-
-        multex.lock();
-        if (available_techs == 3) {
-            printf("<Tech> Tech %d is working on the job for client %d.\n", tid, active_client_job);
-            int work_time = rand() % 31;
-            sleep(work_time);
-        }
-        multex.unlock();
-
-        // Tech completes job and goes back to drinking coffee
-        sem_post(&coffees[tid]);
-
-        // After completing the job, the tech is no longer available
-        multex.lock();
-        available_techs--;
-        multex.unlock();
     }
 }
 
