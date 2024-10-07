@@ -60,7 +60,7 @@ void break_room(int tid) {
             
         }
         multex.unlock();
-        cout << "<Tech> " << available_techs << " techs are now available. "
+        cout << "<Tech> " << tech_queue.size() << " techs are now available. "
              << "Techs in the queue are " << queueString(tech_queue) << endl;
         //sem_wait(&notify);
         break;
