@@ -59,24 +59,31 @@ void refill_coffee(){
 */
 void break_room(int tid){
     while (true){
+        printf("<Tech %d> Tech %d entered the breakroom.\n", tid);
         /* -- each tech drinks their coffee for a random amount of time */
         int drink_coffee_time = (int) rand() % 31;  
         sleep(drink_coffee_time);
         /* -- tech is done drinking coffee (set to 0) -- */
         sem_wait(&coffees[tid]);
-        printf("<Tech %d> I just finished my coffee...\n", tid);
+        printf("<Tech %d> Tech %d finished their coffee.\n", tid);
 
-        multex.lock();
-        available_techs += 1;
-        multex.unlock();
+        // multex.lock();
+        // available_techs += 1;
+        // if (available_techs == 3){
+
+        // }
+        // multex.unlock();
     }
 }
 
 
 /* -- RECEPTIONISTS 'help desk' FUNCITON --
 */
-void helpdesk(int tid){
-    printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
+void helpdesk(){
+    while (true){
+        printf("<Help Desk> The help desk is takign calls..");
+    }
+    // printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
     // call the techs (set to 0)
 }
 
@@ -91,9 +98,6 @@ void do_something(int tid){
         int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
-
-        receptionist = thread(helpdesk, tid);
-        receptionist.join();
     }
 }
 
@@ -103,12 +107,13 @@ int main(){
     for (int i = 0; i < 5; i++){
         sem_init(&coffees[i], 0, 1);
     }
-    
-    for (int i = 0; i < 5; i++){
-        techs[i] = thread(break_room, i);
-    }
+
+    receptionist = thread(helpdesk);
     for (int i = 0; i < 2; i++){
         clients[i] = thread(do_something, i);
+    }
+    for (int i = 0; i < 5; i++){
+        techs[i] = thread(break_room, i);
     }
 
     clients[0].join();
