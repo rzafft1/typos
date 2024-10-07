@@ -72,7 +72,10 @@ void helpdesk() {
     while (true) {
         sem_wait(&call);  // Wait for a client call
 
-        sem_post(&notify); // Notify techs
+        // Notify all techs that a client called
+        for (int i = 0; i < 5; i++) {
+            sem_post(&notify);
+        }
 
         sem_wait(&ready); // wait until 3 workers are ready
     }
