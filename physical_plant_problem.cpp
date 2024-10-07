@@ -81,7 +81,7 @@ void break_room(int tid){
 void helpdesk(){
     while (true){
         sem_wait(&call);  // wait for a client to call 
-        printf("<Help Desk> The help desk got a call.");
+        printf("<Help Desk> The help desk got a call.\n");
     }
     // printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
     // call the techs (set to 0)
@@ -109,8 +109,8 @@ int main(){
         sem_init(&coffees[i], 0, 1);
     }
 
-    // set calls to 1, no clients have called
-    sem_init(&call, 0, 1);
+    // set calls to 0, no clients have called
+    sem_init(&call, 0, 0);
 
     receptionist = thread(helpdesk);
     for (int i = 0; i < 2; i++){
