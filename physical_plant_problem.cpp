@@ -56,8 +56,8 @@ void break_room(int tid) {
         available_techs++;
         tech_queue.push(tid);
         multex.unlock();
-        printf("<Tech> %d techs are now available. Techs in the queue are %d \n", available_techs, queueString(tech_queue));
-
+        cout << "<Tech> " << available_techs << " techs are now available. "
+             << "Techs in the queue are " << queueString(tech_queue) << endl;
         //sem_wait(&notify);
         break;
     }
