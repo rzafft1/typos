@@ -49,7 +49,7 @@ thread receptionist;
 
 void call_helpdesk(){
     multex.lock();  
-    sem_wait(&call); 
+    sem_post(&call); 
     multex.unlock();
 }
 
@@ -80,7 +80,7 @@ void break_room(int tid){
 */
 void helpdesk(){
     while (true){
-        sem_post(&call);  
+        sem_wait(&call);  // wait for a client to call 
         printf("<Help Desk> The help desk got a call.");
     }
     // printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
