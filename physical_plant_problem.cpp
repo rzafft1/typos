@@ -43,11 +43,11 @@ void break_room(int tid) {
 
         multex.lock();
         available_techs++;
+        multex.unlock();
         printf("<Tech> %d techs are now available.\n", available_techs);
         if (available_techs >= 3) {
             sem_post(&ready);  // Signal that 3 techs are available
         }
-        multex.unlock();
 
         // Wait for job notification
         sem_wait(&notify);
