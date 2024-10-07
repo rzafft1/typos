@@ -47,11 +47,10 @@ thread clients[2];
 thread receptionist;
 
 
-void refill_coffee(){
-    /* -- initialize coffee semaphores to 1 ("pour each tech a cup of coffee") -- */
-    for (int i = 0; i < 5; i++){
-        sem_init(&coffees[i], 0, 1);
-    }    
+void call_helpdesk(){
+    multex.lock();  
+    sem_wait(&call); 
+    multex.unlock();
 }
 
 
@@ -81,7 +80,8 @@ void break_room(int tid){
 */
 void helpdesk(){
     while (true){
-        //printf("<Help Desk> The help desk is takign calls..");
+        sem_post(&call);  
+        printf("<Help Desk> The help desk got a call.");
     }
     // printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
     // call the techs (set to 0)
@@ -98,6 +98,7 @@ void do_something(int tid){
         int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
+        call_helpdesk();
     }
 }
 
@@ -107,6 +108,9 @@ int main(){
     for (int i = 0; i < 5; i++){
         sem_init(&coffees[i], 0, 1);
     }
+
+    // set calls to 1, no clients have called
+    sem_init(&call, 0, 1);
 
     receptionist = thread(helpdesk);
     for (int i = 0; i < 2; i++){
