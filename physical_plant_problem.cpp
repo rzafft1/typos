@@ -50,18 +50,16 @@ void break_room(int tid) {
         
         // Tech is done drinking coffee
         sem_wait(&coffees[tid]);
-        printf("<Tech> Tech %d finished their coffee.\n", tid);
 
         multex.lock();
         tech_queue.push(tid);
+        cout << "<Tech> " << tech_queue.size() << " techs are now available. " << "Techs in the queue are " << queueString(tech_queue) << endl;
         if (tech_queue.size() == 3){
             cout << "techs " << queueString(tech_queue) << " are working on the job for client " << endl;
             available_techs -= 3;
-            
+            break;
         }
         multex.unlock();
-        cout << "<Tech> " << tech_queue.size() << " techs are now available. "
-             << "Techs in the queue are " << queueString(tech_queue) << endl;
         //sem_wait(&notify);
         break;
     }
