@@ -56,22 +56,22 @@ void refill_coffee(){
 
 /* -- TECHS 'break room / drink coffee' FUNCITON --
 */
-void break_room(int tid){
-    /* -- each tech drinks their coffee for a random amount of time */
-    int drink_coffee_time = (int) rand() % 31;  
-    sleep(drink_coffee_time);
-    /* -- tech is done drinking coffee (set to 0) -- */
-    sem_wait(&coffees[tid]);
+// void break_room(int tid){
+//     /* -- each tech drinks their coffee for a random amount of time */
+//     int drink_coffee_time = (int) rand() % 31;  
+//     sleep(drink_coffee_time);
+//     /* -- tech is done drinking coffee (set to 0) -- */
+//     sem_wait(&coffees[tid]);
 
-    multex.lock();
-    available_techs += 1;
-    /* -- when 3 techs are available we will notify the help desk that we can fix their problem -- */
-    if (available_techs == 3) {
-        sem_post(&available_techs); 
-        available_techs -= 3;
-    }
-    multex.unlock();
-}
+//     multex.lock();
+//     available_techs += 1;
+//     /* -- when 3 techs are available we will notify the help desk that we can fix their problem -- */
+//     if (available_techs == 3) {
+//         sem_post(&available_techs); 
+//         available_techs -= 3;
+//     }
+//     multex.unlock();
+// }
 
 
 /* -- RECEPTIONISTS 'help desk' FUNCITON --
@@ -117,4 +117,5 @@ int main(){
 2. When a tech is finished drinking its coffee we incrment the number of available techs by 1
 3. when the number of available techs reaches 3
 
+run with : g++ physical_plant_problem.cpp -pthread -std=c++11 -o ppp
  */
