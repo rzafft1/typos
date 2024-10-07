@@ -46,13 +46,14 @@ void break_room(int tid) {
         multex.unlock();
         printf("<Tech> %d techs are now available.\n", available_techs);
 
+        sem_wait(&notify);
     }
 }
 
 /* Helpdesk function */
 void helpdesk() {
     while (true) {
-        sem_wait(&notify);  // Wait for a client call
+        //sem_wait(&notify);  // Wait for a client call
         multex.lock();
         
         if (!client_queue.empty()) {
