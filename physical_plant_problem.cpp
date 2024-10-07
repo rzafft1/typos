@@ -24,7 +24,6 @@ int active_client_job = -1;  // Tracks which client's job is active
 void call_helpdesk(int client_tid) {
     multex.lock();
     client_queue.push(client_tid);  // Push client's tid into the queue
-    printf("<Client %d> Called the helpdesk and added to the queue.\n", client_tid);
     sem_post(&call);  // Notify the helpdesk about the new client
     multex.unlock();
 }
@@ -59,7 +58,6 @@ void helpdesk() {
         if (!client_queue.empty()) {
             active_client_job = client_queue.front();  
             client_queue.pop();  
-            printf("<Help Desk> The help desk got a call from client %d and assigned the job to techs.\n", active_client_job);
             //sem_post(&notify);
             // Wait for 3 techs to be ready
             sem_wait(&ready);
