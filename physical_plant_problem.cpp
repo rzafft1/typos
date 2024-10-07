@@ -57,13 +57,6 @@ void call_helpdesk(int client_tid){
     multex.unlock();
 }
 
-void notify_techs(){
-    multex.lock();
-    // set notify to 1, i.e. techs are notified of a job
-    sem_post(&notify);
-    multex.unlock();
-}
-
 void break_room(int tid){
     while (true){
         printf("<Tech> Tech %d entered the breakroom.\n", tid);
@@ -77,6 +70,9 @@ void break_room(int tid){
         sem_wait(&notify);
         printf("<Tech> Tech %d got a call from helpdesk and is ready to work.\n", tid);
 
+        /* -- tech completes job, and goes back to drinking coffee*/
+        sem_post(&coffees[tid]);
+
     }
 }
 
@@ -88,8 +84,8 @@ void helpdesk(){
         // wait for a call from a client (wait for call to be set to 1) and take the call (set call back to 0)
         sem_wait(&call); 
         printf("<Help Desk> The help desk got a call from client %d.\n", client_call_tid);
-        // tell techs that a job is available
-        notify_techs();
+        // set notify to 1, i.e. techs are notified of a job
+        sem_post(&notify);
     }
 }
 
