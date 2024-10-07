@@ -40,9 +40,6 @@ using namespace std;
 */
 mutex multex;  
 sem_t coffees[5];  
-sem_t working[5];
-sem_t client_problems[2] /* each client has one problem semphamore which is either (1 - no fixed) or (0 - fixed)) */
-sem_t available_techs; /* either 1 (3 techs are not available) or 0 (3 techs are available)*/
 int available_techs = 0;
 thread techs[5];
 thread clients[2];  
@@ -96,8 +93,6 @@ void do_something(int tid){
         int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
         printf("Client %d has a problem!\n", tid);
-        /* -- when someting breaks, the client calls the helpdesk -- */
-
     }
 }
 
@@ -105,31 +100,9 @@ int main(){
 
     thread receptionist(helpdesk);
 
-    /* -- initialize coffee semaphores to 1 ("pour each tech a cup of coffee") -- */
-    for (int i = 0; i < 5; i++){
-        sem_init(&coffees[i], 0, 1);
-    }
-
-    /* -- initialize working semaphores to 1 ("none of the techs are working") -- */
-    for (int i = 0; i < 5; i++){
-        sem_init(&working[i], 0, 1);
-    }
-    /* -- initialize working semaphores to 1 ("none of the techs are working") -- */
-    for (int i = 0; i < 2; i++){
-        sem_init(&client_problems[i], 0, 1);
-    }
-
-    /* -- initialize available_techs semaphore to 1 ("3 techs are not available") -- */
-    sem_init(&available_techs, 0, 1);
-
     /* -- Let the clients do stuff... (create the client threads) -- */
     for (int i = 0; i < 2; i++){
         clients[i] = thread(do_something, i);
-    }
-
-    /* -- Let the techs sit in the break room and drink coffee... (create the tech threads) -- */
-    for (int i = 0; i < 5; i++){
-        techs[i] = thread(break_room, i);
     }
 
     return 0;
