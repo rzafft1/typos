@@ -81,7 +81,7 @@ void break_room(int tid){
 */
 void helpdesk(){
     while (true){
-        printf("<Help Desk> The help desk is takign calls..");
+        //printf("<Help Desk> The help desk is takign calls..");
     }
     // printf("<Help Desk> Client %d called. %d techs are available right now. \n", tid, available_techs);
     // call the techs (set to 0)
