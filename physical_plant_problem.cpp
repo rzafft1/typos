@@ -43,6 +43,7 @@ sem_t coffees[5];
 int available_techs = 0;
 sem_t call; // 0 (no call), 1 (call from client to helpdesk)
 sem_t notify; // 0 (no notify), 1 (notify techs that job is available)
+sem_t job_complete[0];
 thread techs[5];
 thread clients[2];  
 thread receptionist;
@@ -99,7 +100,9 @@ void helpdesk(){
 
         while (available_techs < 3);
         // set notify to 1, i.e. techs are notified of a job
-        sem_post(&notify);    }
+        sem_post(&job_complete[client_call_tid]);    
+
+    }
 }
 
 
@@ -109,6 +112,8 @@ void do_something(int tid){
         sleep(do_something_time);
         printf("<Client %d> I have a problem!\n", tid);
         call_helpdesk(tid);
+        sem_wait(&job_complete[tid]);
+        printf("<Client %d> my problem is fixed!\n", tid);
     }
 }
 
@@ -123,6 +128,10 @@ int main(){
     sem_init(&call, 0, 0);
     // set notify to 0, no need to notify techs of jobs
     sem_init(&notify, 0, 0);
+
+    // job is not complete
+    sem_init(&job_complete[0], 0, 0);
+    sem_init(&job_complete[1], 0, 0);
 
     receptionist = thread(helpdesk);
     for (int i = 0; i < 2; i++){
