@@ -57,7 +57,13 @@ void break_room(int tid) {
         if (tech_queue.size() == 3){
             cout << "techs " << queueString(tech_queue) << " are working on the job for client " << endl;
             available_techs -= 3;
-            break;
+            while (tech_queue.empty() == false){
+                int working_tid = tech_queue.front();
+                if (working_tid == tid){
+                    cout << "tech " << tid << " done working on job for client";
+                    tech_queue.pop();
+                }
+            }
         }
         multex.unlock();
         //sem_wait(&notify);
