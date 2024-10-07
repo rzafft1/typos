@@ -77,7 +77,7 @@ void refill_coffee(){
 /* -- RECEPTIONISTS 'help desk' FUNCITON --
 */
 void helpdesk(int tid){
-    printf("Client %d called, but we are waiting for techs\n", tid);
+    printf("<Help Desk> Client %d called, but we are waiting for techs\n", tid);
 }
 
 
@@ -90,7 +90,7 @@ void do_something(int tid){
     while (true) {
         int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
-        printf("Client %d has a problem!\n", tid);
+        printf("<Client %d> I have a problem!\n", tid);
 
         receptionist = thread(helpdesk, tid);
         receptionist.join();
