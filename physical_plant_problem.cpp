@@ -59,13 +59,13 @@ void refill_coffee(){
 */
 void break_room(int tid){
     while (true){
-        printf("<Tech %d> Tech %d entered the breakroom.\n", tid);
+        printf("<Tech> Tech %d entered the breakroom.\n", tid);
         /* -- each tech drinks their coffee for a random amount of time */
         int drink_coffee_time = (int) rand() % 31;  
         sleep(drink_coffee_time);
         /* -- tech is done drinking coffee (set to 0) -- */
         sem_wait(&coffees[tid]);
-        printf("<Tech %d> Tech %d finished their coffee.\n", tid);
+        printf("<Tech> Tech %d finished their coffee.\n", tid);
 
         // multex.lock();
         // available_techs += 1;
