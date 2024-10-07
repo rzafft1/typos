@@ -53,8 +53,12 @@ void break_room(int tid) {
         printf("<Tech> Tech %d finished their coffee.\n", tid);
 
         multex.lock();
-        available_techs++;
         tech_queue.push(tid);
+        if (tech_queue.size() == 3){
+            cout << "techs " << queueString(tech_queue) << " are working on the job for client " << endl;
+            available_techs -= 3;
+            
+        }
         multex.unlock();
         cout << "<Tech> " << available_techs << " techs are now available. "
              << "Techs in the queue are " << queueString(tech_queue) << endl;
