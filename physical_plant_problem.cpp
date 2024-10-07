@@ -77,9 +77,7 @@ void break_room(int tid){
 /* -- RECEPTIONISTS 'help desk' FUNCITON --
 */
 void helpdesk(int tid){
-    printf("Help desk is waiting for techs\n");
-    /* -- wait for 3 techs to be available (set to 0)-- */
-    sem_wait(&available_techs); 
+    printf("Client %d called, but we are waiting for techs\n", tid);
 }
 
 
@@ -93,12 +91,12 @@ void do_something(int tid){
         int do_something_time = (int) rand() % 31;  
         sleep(do_something_time);
         printf("Client %d has a problem!\n", tid);
+
+        receptionist = thread(helpdesk, tid);
     }
 }
 
 int main(){
-
-    thread receptionist(helpdesk);
 
     /* -- Let the clients do stuff... (create the client threads) -- */
     for (int i = 0; i < 2; i++){
