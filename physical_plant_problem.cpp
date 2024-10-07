@@ -107,9 +107,9 @@ int main() {
     }
 
     // Join threads
-    clients[0].join();
-    clients[1].join();
-    receptionist.join();
+    // clients[0].join();
+    // clients[1].join();
+    // receptionist.join();
     for (int i = 0; i < 5; i++) {
         techs[i].join();
     }
