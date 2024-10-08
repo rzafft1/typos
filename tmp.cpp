@@ -27,7 +27,7 @@ int available_techs = 0;
 
 void break_room(int tid) {
     while (true) {
-        printf("<Tech> Tech %d entered the breakroom.\n", tid);
+        printf("<COFFEE BREAK> Tech %d entered the breakroom.\n", tid);
         
         // Each tech drinks coffee for a random amount of time
         int drink_coffee_time = rand() % 31;
@@ -42,9 +42,8 @@ void break_room(int tid) {
         multex.lock();
         available_techs += 1;
         // start the job
-        printf("<Tech> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
+        printf("<READY> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
         if (available_techs <= 3){
-            printf("<Tech> READY! Tech %d is ready for the job\n", tid);
             if (available_techs == 3){
                 available_techs = 0;
                 int client_tid = client_queue.front();
@@ -56,9 +55,7 @@ void break_room(int tid) {
                 }
             }
         }
-
         multex.unlock();
-
 
         sem_wait(&sync_techs);
         // tech fills back up their coffee mug
