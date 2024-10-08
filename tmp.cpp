@@ -56,7 +56,7 @@ void break_room(int tid) {
                 for (int i = 0; i < 5; i++){
                     int val;
                     sem_getvalue(&working[i], &val);
-                    if (val == 0){
+                    if (val <= 0){
                         sem_post(&working[i]);
                     }
                 }
