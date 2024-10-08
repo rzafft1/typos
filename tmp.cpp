@@ -16,7 +16,7 @@ sem_t jobs[5];
 sem_t call;
 sem_t complete[2];
 
-sem_t tech_job_complete;
+sem_t working;
 
 queue<int> client_queue;   
 queue<int> tech_queue;
@@ -49,12 +49,15 @@ void break_room(int tid) {
             available_techs = 0;
             int client_tid = client_queue.front();
             client_queue.pop();
-            printf("<Tech> Tech %d is fixing issue for client %d. \n", tid, client_tid);
+            printf("<Tech> UPDATE! Tech %d is fixing issue for client %d. \n", tid, client_tid);
             sem_post(&complete[client_tid]);
-            sem_post(&tech_job_complete);
+            // complete the job
+            sem_post(&working);
         }
         multex.unlock();
-        sem_wait(&tech_job_complete);
+
+        // wait will the job is working
+        sem_wait(&working);
 
         // tech fills back up their coffee mug
         sem_post(&coffees[tid]);
@@ -87,10 +90,10 @@ void do_something(int tid) {
     while (true) {
         int do_something_time = rand() % 31;
         sleep(do_something_time);
-        printf("<Client %d> I have a problem!\n", tid);
+        printf("\n+++++++++++++++++++\n<Client %d> I have a problem!!!\n+++++++++++++++++++\n", tid);
         call_helpdesk(tid);  // Client calls the helpdesk
         sem_wait(&complete[tid]);  // Wait for the job to be done
-        printf("<Client %d> My problem is fixed!\n", tid);
+        printf("\n---------------\n<Client %d> My problem is fixed!\n---------------\n", tid);
     }
 }
 
@@ -104,7 +107,7 @@ int main() {
     sem_init(&complete[0], 0, 0);
     sem_init(&complete[1], 0, 0);
     sem_init(&call, 0, 0);
-    sem_init(&tech_job_complete, 0, 0);
+    sem_init(&working, 0, 0);
 
     // Start helpdesk thread
     receptionist = thread(helpdesk);
