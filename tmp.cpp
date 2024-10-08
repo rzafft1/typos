@@ -23,6 +23,7 @@ thread techs[5];
 thread clients[2];  
 thread receptionist;
 
+int available_techs = 0;
 
 void break_room(int tid) {
     while (true) {
@@ -38,7 +39,13 @@ void break_room(int tid) {
         // Wait for a job
         sem_wait(&jobs[tid]);
 
-        printf("<Tech> Tech %d was notified of a job.\n", tid);
+        multex.lock();
+        available_techs += 1;
+        multex.unlock();
+
+        printf("<Tech> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
+
+
     }
 }
 
