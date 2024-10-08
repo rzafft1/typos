@@ -24,6 +24,7 @@ queue<int> tech_queue;
 thread techs[5];
 thread clients[2];  
 thread receptionist;
+bool done = false;
 
 int available_techs = 0;
 
@@ -53,16 +54,15 @@ void break_room(int tid) {
                 client_queue.pop();
                 printf("<Tech> UPDATE! Techs are fixing issue for client %d. \n", tid, client_tid);
                 sem_post(&complete[client_tid]);
-                for (int i = 0; i < 5; i++){
-                    int val;
-                    sem_getvalue(&working[i], &val);
-                    if (val <= 0){
-                        sem_post(&working[i]);
-                    }
-                }
+                done = true;
             }
         }
+
+        if (done){
+            sem_post(&working[tid]);
+        }
         multex.unlock();
+
 
 
         // tech fills back up their coffee mug
