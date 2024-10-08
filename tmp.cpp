@@ -48,7 +48,6 @@ void break_room(int tid) {
         printf("<Tech> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
         if (available_techs <= 3){
             printf("<Tech> READY! Tech %d is ready for the job\n", tid);
-            sem_wait(&working[tid]);
             if (available_techs == 3){
                 int client_tid = client_queue.front();
                 client_queue.pop();
@@ -58,15 +57,15 @@ void break_room(int tid) {
             }
         }
 
-        if (done){
-            sem_post(&working[tid]);
-        }
         multex.unlock();
 
 
 
         // tech fills back up their coffee mug
-        sem_post(&coffees[tid]);
+        if (done){
+            sem_post(&coffees[tid]);
+        }
+       
     }
 }
 
