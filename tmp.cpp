@@ -48,7 +48,7 @@ void break_room(int tid) {
                 available_techs = 0;
                 int client_tid = client_queue.front();
                 client_queue.pop();
-                printf("<Tech> UPDATE! Techs are fixing issue for client %d. \n", tid, client_tid);
+                printf("<Tech> UPDATE! Techs are fixing issue for client %d. \n", client_tid);
                 sem_post(&complete[client_tid]);
                 for (int i = 0; i < 3; i++) {
                     sem_post(&sync_techs);  // Release techs after the job
