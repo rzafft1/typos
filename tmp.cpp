@@ -47,10 +47,11 @@ void break_room(int tid) {
         printf("<Tech> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
         sem_post(&working);
         if (available_techs <= 3){
-            int client_tid = client_queue.front();
-            client_queue.pop();
-            printf("<Tech> UPDATE! Tech %d is fixing issue for client %d. \n", tid, client_tid);
+            printf("<Tech> READY! Tech %d is ready for the job\n", tid);
             if (available_techs == 3){
+                int client_tid = client_queue.front();
+                client_queue.pop();
+                printf("<Tech> UPDATE! Techs are fixing issue for client %d. \n", tid, client_tid);
                 sem_post(&complete[client_tid]);
             }
         }
