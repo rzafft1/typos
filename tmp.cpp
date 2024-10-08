@@ -49,6 +49,7 @@ void break_room(int tid) {
         if (available_techs <= 3){
             printf("<Tech> READY! Tech %d is ready for the job\n", tid);
             if (available_techs == 3){
+                available_techs = 0;
                 int client_tid = client_queue.front();
                 client_queue.pop();
                 printf("<Tech> UPDATE! Techs are fixing issue for client %d. \n", tid, client_tid);
@@ -62,9 +63,7 @@ void break_room(int tid) {
 
 
         // tech fills back up their coffee mug
-        if (done){
-            sem_post(&coffees[tid]);
-        }
+        sem_post(&coffees[tid]);
        
     }
 }
