@@ -58,7 +58,7 @@ void break_room(int tid) {
     while (true) {
         /* -- (1-2) drink coffee for random amount of time (coffees[tid] = 1) -- */
         printf("<COFFEE BREAK> Tech %d entered the breakroom.\n", tid);
-        int drink_coffee_time = rand() % 91;
+        int drink_coffee_time = rand() % 31;
         sleep(drink_coffee_time);
         /* -- (3) tech is done drinking coffee, their mug is empty (coffees[tid] = 0) -- */
         sem_wait(&coffees[tid]);
@@ -68,17 +68,17 @@ void break_room(int tid) {
         multex.lock();
         available_techs += 1;
         printf("<ALERT> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
-        if (available_techs == 3){
-            available_techs = 0;
-            int client_tid = client_queue.front();
-            client_queue.pop();
-            printf("<WORKING> UPDATE! Techs are fixing issue for client %d. \n", client_tid);
-            /* -- (6a) notify the client that the job is complete, the client can now have more problems -- */
-            sem_post(&problem[client_tid]);
-            /* -- (6b) the job is complete, all techs working can go back to drinking coffee -- */
-            for (int i = 0; i < 3; i++) {
-                sem_post(&working);  
-            }
+        if (available_techs <= 3){
+          if (available_techs == 3){
+              available_techs = 0;
+              int client_tid = client_queue.front();
+              client_queue.pop();
+              printf("<WORKING> UPDATE! Techs are fixing issue for client %d. \n", client_tid);
+              /* -- (6a) notify the client that the job is complete, the client can now have more problems -- */
+              sem_post(&problem[client_tid]);
+              /* -- (6b) the job is complete, all techs working can go back to drinking coffee -- */
+          }
+          sem_post(&working);
         }
         multex.unlock();
         /* -- (5) techs that accepted the job wait until the job is complete (i.e. wait for sem_post(&working)) -- */
@@ -129,7 +129,7 @@ void call_helpdesk(int client_tid) {
 */
 void do_something(int tid) {
     while (true) {
-        int do_something_time = rand() % 551;
+        int do_something_time = rand() % 51;
         sleep(do_something_time);
         printf("\n+++++++++++++++++++\n<Client %d> I have a problem!!!\n+++++++++++++++++++\n", tid);
         /* -- call the helpdesk to create a job for the techs -- */
