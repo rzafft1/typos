@@ -11,7 +11,7 @@ using namespace std;
 mutex multex;
 
 sem_t coffees[5];
-sem_t jobs[5];
+sem_t job;
 
 sem_t call;
 sem_t complete[2];
@@ -38,7 +38,7 @@ void break_room(int tid) {
         printf("<COFFEE BREAK> Tech %d has finished their coffee...\n", tid);
 
         // Wait for a job
-        sem_wait(&jobs[tid]);
+        sem_wait(&job);
 
         multex.lock();
         available_techs += 1;
@@ -72,8 +72,8 @@ void helpdesk() {
         sem_wait(&call);  
 
         // Send the job to all the techs
-        for (int i = 0; i < 5; i++) {
-            sem_post(&jobs[i]); 
+        for (int i = 0; i < 3; i++) {
+            sem_post(&job); 
         }
     }
 }
@@ -94,7 +94,7 @@ void do_something(int tid) {
         printf("\n+++++++++++++++++++\n<Client %d> I have a problem!!!\n+++++++++++++++++++\n", tid);
         call_helpdesk(tid);  // Client calls the helpdesk
         sem_wait(&complete[tid]);  // Wait for the job to be done
-        printf("\n---------------\n<Client %d> My problem is fixed!\n---------------\n", tid);
+        printf("---------------\n<Client %d> My problem is fixed!\n---------------\n\n", tid);
     }
 }
 
