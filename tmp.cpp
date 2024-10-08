@@ -16,16 +16,13 @@ sem_t jobs[5];
 sem_t call;
 sem_t complete[2];
 
-sem_t working[5];
-
 queue<int> client_queue;   
 queue<int> tech_queue;
 
 thread techs[5];
 thread clients[2];  
 thread receptionist;
-bool done = false;
-
+sem_t sync_techs;  
 int available_techs = 0;
 
 void break_room(int tid) {
@@ -54,14 +51,16 @@ void break_room(int tid) {
                 client_queue.pop();
                 printf("<Tech> UPDATE! Techs are fixing issue for client %d. \n", tid, client_tid);
                 sem_post(&complete[client_tid]);
-                done = true;
+            }
+            for (int i = 0; i < 3; i++) {
+                sem_post(&sync_techs);  // Release techs after the job
             }
         }
 
         multex.unlock();
 
 
-
+        sem_wait(&sync_techs);
         // tech fills back up their coffee mug
         sem_post(&coffees[tid]);
        
@@ -106,13 +105,12 @@ int main() {
     for (int i = 0; i < 5; i++) {
         sem_init(&coffees[i], 0, 1);
     }
-    for (int i = 0; i < 5; i++) {
-        sem_init(&working[i], 0, 0);
-    }
+
     // Initialize semaphores for job completion and readiness
     sem_init(&complete[0], 0, 0);
     sem_init(&complete[1], 0, 0);
     sem_init(&call, 0, 0);
+    sem_init(&sync_techs, 0, 0);
 
     // Start helpdesk thread
     receptionist = thread(helpdesk);
