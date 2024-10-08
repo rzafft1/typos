@@ -44,7 +44,6 @@ void break_room(int tid) {
         multex.lock();
         available_techs += 1;
         printf("<Tech> Tech %d was notified of a job. (%d/3) techs are now available. \n", tid, available_techs);
-        sem_wait(&tech_job_complete);
 
         if (available_techs == 3){
             available_techs = 0;
@@ -55,6 +54,7 @@ void break_room(int tid) {
             sem_post(&tech_job_complete);
         }
         multex.unlock();
+        sem_wait(&tech_job_complete);
 
         // tech fills back up their coffee mug
         sem_post(&coffees[tid]);
