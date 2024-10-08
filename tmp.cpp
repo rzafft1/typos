@@ -30,7 +30,7 @@ void break_room(int tid) {
         printf("<COFFEE BREAK> Tech %d entered the breakroom.\n", tid);
         
         // Each tech drinks coffee for a random amount of time
-        int drink_coffee_time = rand() % 31;
+        int drink_coffee_time = rand() % 91;
         sleep(drink_coffee_time);
         
         // Tech is done drinking coffee
@@ -89,7 +89,7 @@ void call_helpdesk(int client_tid) {
 
 void do_something(int tid) {
     while (true) {
-        int do_something_time = rand() % 51;
+        int do_something_time = rand() % 551;
         sleep(do_something_time);
         printf("\n+++++++++++++++++++\n<Client %d> I have a problem!!!\n+++++++++++++++++++\n", tid);
         call_helpdesk(tid);  // Client calls the helpdesk
