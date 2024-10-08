@@ -88,7 +88,7 @@ void call_helpdesk(int client_tid) {
 
 void do_something(int tid) {
     while (true) {
-        int do_something_time = rand() % 31;
+        int do_something_time = rand() % 351;
         sleep(do_something_time);
         printf("\n+++++++++++++++++++\n<Client %d> I have a problem!!!\n+++++++++++++++++++\n", tid);
         call_helpdesk(tid);  // Client calls the helpdesk
