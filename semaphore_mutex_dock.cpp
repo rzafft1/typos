@@ -23,160 +23,151 @@ int tc=0, twc=0, mc=0, mwc=0;  //count for num in dock and waiting.
 */
  
 void martian() {
-  int i,id,t;
-  bool canuse = false;
+	int i,id,t;
+	bool canuse = false;
 
-  //geting an id number
-  multex.lock() ;
-    id = martiann;
-    martiann++ ;
-  multex.unlock();
-  printf("martian %d:  Starting \n",id);
+	//geting an id number
+	multex.lock() ;
+	id = martiann;
+	martiann++ ;
+	multex.unlock();
 
-  while (1==1)  {
+	while (true)  {
 
-   //work for a while
-    t = (int) rand() % 10; 
-    printf("martian %d: is arriving in %d seconds\n",id,t);
-    sleep (t);
+		t = (int) rand() % 10; 
+		sleep (t);
 
-    printf("martian %d: needs to use the dock\n",id);
-    sem_wait (&dock); 
-    if (tc == 0) {  //dock has no terrans, so no waiting
-      mc++; 
-      sem_post(&dock);  
-    } else {
-      mwc++;
-      sem_post(&dock);
-      printf("martian %d: is line  \n",id);
-      sem_wait(&martiansS);//the line of martians waiting
-       
-      //finally can use the dock, mark the count up.
-      // note must do this outside of the dock, CR or deadlock will happen
-      sem_wait (&dock); 
-        mc++;
-      sem_post(&dock);
-    }
+		printf("<MARTIAN %d> needs to use the dock\n",id);
+		sem_wait (&dock); // if dock was at 1 (open), now it is at 0 (closed).
+		if (tc == 0) {  //dock has no terrans, so no waiting
+			mc++; 
+			sem_post(&dock); // open the dock for the next martian
+		} 
+		else {
+			mwc++;
+			sem_post(&dock);
+			printf("<MARTIAN %d>: is in line  \n",id);
+			sem_wait(&martiansS);//the line of martians waiting
+
+			//finally can use the dock, mark the count up.
+			// note must do this outside of the dock, CR or deadlock will happen
+			sem_wait (&dock); 
+			mc++;
+			sem_post(&dock);
+		}
 
 
-    //use dock
-    t = (int) rand() % 10; 
-    printf("martian %d: is using the dock for %d seconds\n",id,t);
-    sleep (t);
+		//use dock
+		t = (int) rand() % 10; 
+		printf("++++++++++++\n<MARTIAN %d>: is using the dock for %d seconds\n++++++++++++\n",id,t);
+		sleep (t);
 
-    sem_wait(&dock);
-      mc--;
-      if (mc == 0) {
-        printf("martian %d:  signaling the terrans to start\n",id);
-        for (i=0; i<twc; i++) 
-          sem_post(&terransS);
-        twc =0;
-
-        if (tc == 0 && twc == 0) {
-          sem_post(&terransS);  // Ensure terrans get a chance to use the dock
-        }
-      }
-    sem_post(&dock);
-    printf("martian %d: is done using the dock and departing\n",id);
-  } 
+		sem_wait(&dock);
+		mc--;
+		if (mc == 0) {
+			printf("==> martian %d:  signaling the terrans to start\n",id);
+			for (i=0; i<twc; i++) {
+				sem_post(&terransS);
+			}
+			twc =0;
+		}
+		sem_post(&dock);
+		printf("-----------\n<MARTIAN %d>: is done using the dock\n-----------\n"",id);
+	} 
 }
 
 void terran() {
-  int i,t,id;
+	int i,t,id;
 
-  multex.lock() ;
-    id = terrann;
-    terrann++ ;
-  multex.unlock();
-  printf("terran %d:  Starting \n",id);
+	multex.lock() ;
+	id = terrann;
+	terrann++ ;
+	multex.unlock();
+	
+	while (true) {
 
-  //initial set to infinite for testing
-  while (1==1) {
+		t = (int) rand() % 10;
+		sleep (t);
 
-    t = (int) rand() % 10;
-    printf("terran %d: is arriving for %d seconds\n",id,t);
-    sleep (t);
+		printf("<TERRAN %d> needs to use the dock\n",id,t);
+		sem_wait (&dock); 
+		if (mc == 0) {  //empty
+			tc++;
+			sem_post(&dock);
+		}
+		else {
+			twc++;
+			sem_post(&dock);
+			printf("<TERRAN %d>: is in line  \n",id,t);
+			sem_wait(&terransS);//the line of terrans waiting
 
-    printf("terran %d: needs to use the dock\n",id,t);
-    sem_wait (&dock); 
-    if (mc == 0) {  //empty
-      tc++;
-      sem_post(&dock);
-    }else {
-      twc++;
-      sem_post(&dock);
-      printf("terran %d: is line  \n",id,t);
-      sem_wait(&terransS);//the line of terrans waiting
-
-      //finally can use the dock, mark the count up.
-      // note must do this outside of the dock, CR or deadlock will happen
-      sem_wait(&dock); 
-         tc++;
-      sem_post(&dock);
-    }
+			//finally can use the dock, mark the count up.
+			// note must do this outside of the dock, CR or deadlock will happen
+			sem_wait(&dock); 
+			tc++;
+			sem_post(&dock);
+		}
 
 
-    //use dock
-    t = (int) rand() % 10; 
-    printf("terran %d: is using the dock for %d seconds\n",id,t);
-    sleep (t);
+		//use dock
+		t = (int) rand() % 10; 
+		printf("++++++++++++\n<TERRAN %d> is using the dock for %d seconds\n++++++++++++\n",id,t);
+		sleep (t);
 
-    //done
-    sem_wait(&dock);
-      tc--;
-      if (tc == 0) {
-        printf("terran %d: signaling the martians to start\n",id,t);
-        for (i=0; i<mwc; i++)
-          sem_post(&martiansS);
-        mwc =0;
-      }
-    sem_post(&dock);
-    printf("terran %d: is done with the dock and departing\n",id,t);
-  } 
+		//done
+		sem_wait(&dock);
+		tc--;
+		if (tc == 0) {
+			printf("==> terran %d: signaling the martians to start\n",id,t);
+			for (i=0; i<mwc; i++){
+				sem_post(&martiansS);
+			}
+			mwc =0;
+		}
+		sem_post(&dock);
+		printf("-----------\n<TERRAN %d>: is done using the dock\n-----------\n"",id);
+	} 
 }
 
 int main(int argc, char* argv[]) {
-  int i;
-  //defaults
-  int num_m = 1; 
-  int num_t = 1;
+	int i;
+	//defaults
+	int num_m = 1; 
+	int num_t = 1;
 
-  if (argc ==3) {
-    num_m = atoi( argv[1] );
-    num_t = atoi( argv[2] );
-  } 
-  printf("m is %d, t is %d\n", num_m, num_t);
+	if (argc ==3) {
+		num_m = atoi( argv[1] );
+		num_t = atoi( argv[2] );
+	} 
 
-  thread martians[num_m];
-  thread terrans[num_t];
+	thread martians[num_m];
+	thread terrans[num_t];
 
-  srand((unsigned)time(0));
+	srand((unsigned)time(0));
 
-//init semaphore line to 0, since everyone must wait
-  sem_init(&martiansS,0,0);
-//init semaphore line to 0, since everyone must wait
-  sem_init(&terransS,0,0);
-//init semaphore dock to 1, so first person can go in,  
-//we could have just as easy used a mutex instead of semaphore for the "dock"
-  sem_init(&dock,0,1);
+	//init semaphore line to 0, since everyone must wait
+	sem_init(&martiansS,0,0);
+	//init semaphore line to 0, since everyone must wait
+	sem_init(&terransS,0,0);
+	//init semaphore dock to 1, so first person can go in,  
+	//we could have just as easy used a mutex instead of semaphore for the "dock"
+	sem_init(&dock,0,1);
 
-// create threads 
-  for (i=0; i<num_m; i++) {
-     martians[i] = thread(martian);
-  }
-  printf ("martian threads created\n");
+	// create threads 
+	for (i=0; i<num_m; i++) {
+		martians[i] = thread(martian);
+	}
 
-  for (i=0; i<num_t; i++) {
-    terrans[i] = thread(terran);
-  }
-  printf ("all threads created\n");
+	for (i=0; i<num_t; i++) {
+		terrans[i] = thread(terran);
+	}
 
 
-//wait for threads to finish 
-  for(i=0;i<num_m;i++) 
-    martians[i].join();
+	//wait for threads to finish 
+	for(i=0;i<num_m;i++) 
+		martians[i].join();
 
-  for(i=0;i<num_t;i++) 
-    terrans[i].join();
-  return 0;
+	for(i=0;i<num_t;i++) 
+		terrans[i].join();
+	return 0;
 }
