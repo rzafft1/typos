@@ -36,7 +36,6 @@ void martian() {
 
    //work for a while
     t = (int) rand() % 10; 
-    printf("*** martian %d: is arriving to the dock in %d seconds\n",id,t);
     sleep (t);
 
     printf("!!! martian %d: needs to use the dock\n",id);
@@ -88,7 +87,6 @@ void terran() {
   while (1==1) {
 
     t = (int) rand() % 10;
-    printf("*** terran %d: is arriving at the dock in %d seconds\n",id,t);
     sleep (t);
 
     printf("!!! terran %d: needs to use the dock\n",id,t);
