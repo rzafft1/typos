@@ -99,7 +99,7 @@ void terran() {
 		else {
 			twc++;
 			sem_post(&dock);
-			//printf("<TERRAN %d>: is in line  \n",id,t);
+			printf("\n<TERRAN %d>: is in line  \n\n",id,t);
 			sem_wait(&terransS);//the line of terrans waiting
 
 			//finally can use the dock, mark the count up.
