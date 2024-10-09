@@ -70,6 +70,9 @@ void martian() {
 				sem_post(&terransS);
 			}
 			twc =0;
+			
+			// martians cannot resume unti terrans ahve finished 
+			sem_wait(&dock);
 		}
 		sem_post(&dock);
 		printf("------------<MARTIAN %d>: is done using the dock------------\n",id);
@@ -123,6 +126,7 @@ void terran() {
 				sem_post(&martiansS);
 			}
 			mwc =0;
+			sem_post(&dock);
 		}
 		sem_post(&dock);
 		printf("------------<TERRAN %d>: is done using the dock------------\n",id);
