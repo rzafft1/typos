@@ -31,16 +31,15 @@ void martian() {
     id = martiann;
     martiann++ ;
   multex.unlock();
-  printf("martian %d:  Starting \n",id);
 
   while (1==1)  {
 
    //work for a while
     t = (int) rand() % 10; 
-    printf("martian %d: is arriving in %d seconds\n",id,t);
+    printf("*** martian %d: is arriving to the dock in %d seconds\n",id,t);
     sleep (t);
 
-    printf("martian %d: needs to use the dock\n",id);
+    printf("!!! martian %d: needs to use the dock\n",id);
     sem_wait (&dock); 
     if (tc == 0) {  //dock has no terrans, so no waiting
       mc++; 
@@ -48,7 +47,7 @@ void martian() {
     } else {
       mwc++;
       sem_post(&dock);
-      printf("martian %d: is line  \n",id);
+      printf("... martian %d: is waiting in line at the dock \n",id);
       sem_wait(&martiansS);//the line of martians waiting
        
       //finally can use the dock, mark the count up.
@@ -61,7 +60,7 @@ void martian() {
 
     //use dock
     t = (int) rand() % 10; 
-    printf("martian %d: is using the dock for %d seconds\n",id,t);
+    printf("+++ martian %d: is using the dock for %d seconds\n",id,t);
     sleep (t);
 
     sem_wait(&dock);
@@ -73,7 +72,7 @@ void martian() {
         twc =0;
       }
     sem_post(&dock);
-    printf("martian %d: is done using the dock and departing\n",id);
+    printf("--- martian %d: is done using the dock and departing\n",id);
   } 
 }
 
@@ -84,16 +83,15 @@ void terran() {
     id = terrann;
     terrann++ ;
   multex.unlock();
-  printf("terran %d:  Starting \n",id);
 
   //initial set to infinite for testing
   while (1==1) {
 
     t = (int) rand() % 10;
-    printf("terran %d: is arriving for %d seconds\n",id,t);
+    printf("*** terran %d: is arriving at the dock in %d seconds\n",id,t);
     sleep (t);
 
-    printf("terran %d: needs to use the dock\n",id,t);
+    printf("!!! terran %d: needs to use the dock\n",id,t);
     sem_wait (&dock); 
     if (mc == 0) {  //empty
       tc++;
@@ -101,7 +99,7 @@ void terran() {
     }else {
       twc++;
       sem_post(&dock);
-      printf("terran %d: is line  \n",id,t);
+      printf("... terran %d: is waiting in line at the dock  \n",id,t);
       sem_wait(&terransS);//the line of terrans waiting
 
       //finally can use the dock, mark the count up.
@@ -114,7 +112,7 @@ void terran() {
 
     //use dock
     t = (int) rand() % 10; 
-    printf("terran %d: is using the dock for %d seconds\n",id,t);
+    printf("+++ terran %d: is using the dock for %d seconds\n",id,t);
     sleep (t);
 
     //done
@@ -127,7 +125,7 @@ void terran() {
         mwc =0;
       }
     sem_post(&dock);
-    printf("terran %d: is done with the dock and departing\n",id,t);
+    printf("--- terran %d: is done with the dock and departing\n",id,t);
   } 
 }
 
