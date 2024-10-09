@@ -59,7 +59,7 @@ void martian() {
 
 		//use dock
 		t = (int) rand() % 10; 
-		printf("+++<MARTIAN %d>: is using the dock for %d seconds (%d terrans are waiting)\n",id,t, twc);
+		printf("+++<MARTIAN %d>: is using the dock for %d seconds (%d terrans are waiting) (%d martians using dock)\n",id,t, twc, mc);
 		sleep (t);
 
 		sem_wait(&dock);
