@@ -65,10 +65,12 @@ void martian() {
     sem_wait(&dock);
       mc--;
       if (mc == 0) {
-        printf("martian %d:  signaling the terrans to start\n",id);
-        for (i=0; i<twc; i++) 
-          sem_post(&terransS);
-        twc =0;
+        if (twc > 0) {
+          printf("martian %d:  signaling the terrans to start\n",id);
+          for (i=0; i<twc; i++) 
+            sem_post(&terransS);
+          twc =0;
+        }
       }
     sem_post(&dock);
     printf("--- martian %d: is done using the dock and departing\n",id);
@@ -117,10 +119,12 @@ void terran() {
     sem_wait(&dock);
       tc--;
       if (tc == 0) {
-        printf("terran %d: signaling the martians to start\n",id,t);
-        for (i=0; i<mwc; i++)
-          sem_post(&martiansS);
-        mwc =0;
+        if (mwc > 0) {
+          printf("terran %d: signaling the martians to start\n",id,t);
+          for (i=0; i<mwc; i++)
+            sem_post(&martiansS);
+          mwc =0;
+        }
       }
     sem_post(&dock);
     printf("--- terran %d: is done with the dock and departing\n",id,t);
