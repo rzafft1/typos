@@ -65,7 +65,7 @@ void martian() {
 		printf("UPDATE : (%d martians are using the dock) (%d martians are waiting) (%d terrans are waiting)\n",mc, mwc, twc);
 		sem_wait(&dock);
 		mc--;
-		if (mc == 0 && twc > 0) {
+		if (twc > 0) {
 			printf("\n==> martian %d:  signaling the terrans to start\n\n",id);
 			for (i=0; i<twc; i++) {
 				sem_post(&terransS);
@@ -119,7 +119,7 @@ void terran() {
 		//done
 		sem_wait(&dock);
 		tc--;
-		if (tc == 0 && mwc > 0) {
+		if (mwc > 0) {
 			printf("\n==> terran %d: signaling the martians to start\n\n",id,t);
 			for (i=0; i<mwc; i++){
 				sem_post(&martiansS);
