@@ -71,6 +71,10 @@ void martian() {
         for (i=0; i<twc; i++) 
           sem_post(&terransS);
         twc =0;
+
+        if (tc == 0 && twc == 0) {
+          sem_post(&terransS);  // Ensure terrans get a chance to use the dock
+        }
       }
     sem_post(&dock);
     printf("martian %d: is done using the dock and departing\n",id);
