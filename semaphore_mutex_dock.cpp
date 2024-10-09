@@ -37,7 +37,7 @@ void martian() {
 		t = (int) rand() % 10; 
 		sleep (t);
 
-		printf("<MARTIAN %d> needs to use the dock\n",id);
+		//printf("<MARTIAN %d> needs to use the dock\n",id);
 		sem_wait (&dock); // if dock was at 1 (open), now it is at 0 (closed).
 		if (tc == 0) {  //dock has no terrans, so no waiting
 			mc++; 
@@ -46,7 +46,7 @@ void martian() {
 		else {
 			mwc++;
 			sem_post(&dock);
-			printf("<MARTIAN %d>: is in line  \n",id);
+			//printf("<MARTIAN %d>: is in line  \n",id);
 			sem_wait(&martiansS);//the line of martians waiting
 
 			//finally can use the dock, mark the count up.
@@ -59,7 +59,7 @@ void martian() {
 
 		//use dock
 		t = (int) rand() % 10; 
-		printf("++++++++++++<MARTIAN %d>: is using the dock for %d seconds++++++++++++\n",id,t);
+		printf("+++<MARTIAN %d>: is using the dock for %d seconds+++\n",id,t);
 		sleep (t);
 
 		sem_wait(&dock);
@@ -73,7 +73,7 @@ void martian() {
 			
 		}
 		sem_post(&dock);
-		printf("------------<MARTIAN %d>: is done using the dock------------\n",id);
+		printf("---<MARTIAN %d>: is done using the dock---\n",id);
 	} 
 }
 
@@ -90,7 +90,7 @@ void terran() {
 		t = (int) rand() % 10;
 		sleep (t);
 
-		printf("<TERRAN %d> needs to use the dock\n",id,t);
+		//printf("<TERRAN %d> needs to use the dock\n",id,t);
 		sem_wait (&dock); 
 		if (mc == 0) {  //empty
 			tc++;
@@ -99,7 +99,7 @@ void terran() {
 		else {
 			twc++;
 			sem_post(&dock);
-			printf("<TERRAN %d>: is in line  \n",id,t);
+			//printf("<TERRAN %d>: is in line  \n",id,t);
 			sem_wait(&terransS);//the line of terrans waiting
 
 			//finally can use the dock, mark the count up.
@@ -112,7 +112,7 @@ void terran() {
 
 		//use dock
 		t = (int) rand() % 10; 
-		printf("++++++++++++<TERRAN %d> is using the dock for %d seconds++++++++++++\n",id,t);
+		printf("+++<TERRAN %d> is using the dock for %d seconds+++\n",id,t);
 		sleep (t);
 
 		//done
@@ -126,7 +126,7 @@ void terran() {
 			mwc =0;
 		}
 		sem_post(&dock);
-		printf("------------<TERRAN %d>: is done using the dock------------\n",id);
+		printf("---<TERRAN %d>: is done using the dock---\n",id);
 	} 
 }
 
