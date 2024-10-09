@@ -61,8 +61,9 @@ void martian() {
 		t = (int) rand() % 10; 
 		printf("+++<MARTIAN %d>: is using the dock for %d seconds (%d terrans are waiting) (%d martians using dock)\n",id,t, twc, mc);
 		sleep (t);
+		printf("---<MARTIAN %d>: is done using the dock\n",id);
 
-		// printf("UPDATE : (%d martians are using the dock) (%d martians are waiting) (%d terrans are waiting)\n",mc, mwc, twc);
+		printf("UPDATE : (%d martians are using the dock) (%d martians are waiting) (%d terrans are waiting)\n",mc, mwc, twc);
 		sem_wait(&dock);
 		mc--;
 		if (mc == 0 && twc > 0) {
@@ -74,7 +75,7 @@ void martian() {
 			
 		}
 		sem_post(&dock);
-		printf("---<MARTIAN %d>: is done using the dock\n",id);
+		//printf("---<MARTIAN %d>: is done using the dock\n",id);
 	} 
 }
 
@@ -115,6 +116,7 @@ void terran() {
 		t = (int) rand() % 10; 
 		printf("+++<TERRAN %d> is using the dock for %d seconds\n",id,t);
 		sleep (t);
+		printf("---<TERRAN %d>: is done using the dock\n",id);
 
 		//done
 		sem_wait(&dock);
@@ -127,7 +129,7 @@ void terran() {
 			mwc =0;
 		}
 		sem_post(&dock);
-		printf("---<TERRAN %d>: is done using the dock\n",id);
+		//printf("---<TERRAN %d>: is done using the dock\n",id);
 	} 
 }
 
