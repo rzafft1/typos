@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     num_m = atoi( argv[1] );
     num_t = atoi( argv[2] );
   } 
-  printf("m is %d, t is %d\n", num_m, num_t);
+  printf("%d martians, %d terrains\n", num_m, num_t);
 
   thread martians[num_m];
   thread terrans[num_t];
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
   for (i=0; i<num_t; i++) {
     terrans[i] = thread(terran);
   }
-  printf ("all threads created\n");
+  printf ("terran threads created\n");
 
 
 //wait for threads to finish 
