@@ -39,7 +39,7 @@ void martian() {
 
 		//printf("<MARTIAN %d> needs to use the dock\n",id);
 		sem_wait (&dock); // if dock was at 1 (open), now it is at 0 (closed).
-		if (tc == 0) {  //dock has no terrans, so no waiting
+		if (tc == 0 && twc == 0) {  //dock has no terrans, so no waiting
 			mc++; 
 			sem_post(&dock); // open the dock for the next martian
 		} 
@@ -65,7 +65,7 @@ void martian() {
 		printf("UPDATE : (%d martians are using the dock) (%d martians are waiting) (%d terrans are waiting)\n",mc, mwc, twc);
 		sem_wait(&dock);
 		mc--;
-		if (twc > 0) {
+		if (mc == 0 && twc > 0) {
 			printf("\n==> martian %d:  signaling the terrans to start\n\n",id);
 			for (i=0; i<twc; i++) {
 				sem_post(&terransS);
@@ -93,7 +93,7 @@ void terran() {
 
 		printf("\n<TERRAN %d> needs to use the dock\n\n",id,t);
 		sem_wait (&dock); 
-		if (mc == 0) {  //empty
+		if (mc == 0 && mwc == 0) {  //empty
 			tc++;
 			sem_post(&dock);
 		}
@@ -119,7 +119,7 @@ void terran() {
 		//done
 		sem_wait(&dock);
 		tc--;
-		if (mwc > 0) {
+		if (tc == 0 && mwc > 0) {
 			printf("\n==> terran %d: signaling the martians to start\n\n",id,t);
 			for (i=0; i<mwc; i++){
 				sem_post(&martiansS);
