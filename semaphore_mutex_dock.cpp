@@ -72,7 +72,7 @@ void martian() {
 			twc =0;
 		}
 		sem_post(&dock);
-		printf("-----------\n<MARTIAN %d>: is done using the dock\n-----------\n"",id);
+		printf("-----------\n<MARTIAN %d>: is done using the dock\n-----------\n",id);
 	} 
 }
 
@@ -125,7 +125,7 @@ void terran() {
 			mwc =0;
 		}
 		sem_post(&dock);
-		printf("-----------\n<TERRAN %d>: is done using the dock\n-----------\n"",id);
+		printf("-----------\n<TERRAN %d>: is done using the dock\n-----------\n",id);
 	} 
 }
 
