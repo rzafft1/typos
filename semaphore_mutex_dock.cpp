@@ -63,7 +63,7 @@ void martian() {
 		sleep (t);
 		printf("---<MARTIAN %d>: is done using the dock\n",id);
 
-		printf("UPDATE : (%d martians are using the dock) (%d martians are waiting) (%d terrans are waiting)\n",mc, mwc, twc);
+		//printf("UPDATE : (%d martians are using the dock) (%d martians are waiting) (%d terrans are waiting)\n",mc, mwc, twc);
 		sem_wait(&dock);
 		mc--;
 		if (mc == 0 && twc > 0) {
