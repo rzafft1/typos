@@ -71,6 +71,8 @@ void martian() {
             sem_post(&terransS);
           twc =0;
         }
+        sem_wait(&dock);
+        sem_post(&dock);
       }
     sem_post(&dock);
     printf("--- martian %d: is done using the dock and departing\n",id);
@@ -125,6 +127,8 @@ void terran() {
             sem_post(&martiansS);
           mwc =0;
         }
+        sem_wait(&dock);
+        sem_post(&dock);
       }
     sem_post(&dock);
     printf("--- terran %d: is done with the dock and departing\n",id,t);
