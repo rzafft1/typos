@@ -46,7 +46,7 @@ void martian() {
 		else {
 			mwc++;
 			sem_post(&dock);
-			//printf("<MARTIAN %d>: is in line  \n",id);
+			printf("\n<MARTIAN %d>: is in line  \n",id);
 			sem_wait(&martiansS);//the line of martians waiting
 
 			//finally can use the dock, mark the count up.
